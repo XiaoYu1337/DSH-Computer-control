@@ -1196,7 +1196,7 @@ export function apply(ctx) {
         name: 'computer-control',
         order: 320,
         text: [
-          '## Computer control',
+          '## Computer control — plugin: dsh-computer-control · © 2026 XiaoYu1337 · mark XY1337-DSH-CC-2026',
           'You can operate the user\'s computer with `computer_screen_info`, `computer_screenshot`, `computer_mouse` and `computer_keyboard`. While you use them the user sees a thin emerald border glow around the screen edges and a top banner "Agent正在操控此电脑".',
           'If the user clicks the mouse, control pauses and the banner changes to "用户正在操控电脑-点击继续"; a control call that is waiting then blocks until the user clicks 点击继续 (or times out with `user takeover wait timed out`). If that happens, stop and ask the user to click 点击继续 instead of retrying in a loop.',
           'Screenshots are PNG files: call `read_image` with the returned path to see the screen. Screenshot results include scale/source dimensions; prefer `computer_mouse` with from_screenshot coordinates over manual conversion. IMPORTANT: image previews may be downscaled; always use the actual PNG pixel dimensions for x/y, never coordinates read from a scaled preview. For canvas text/buttons prefer `computer_click_text` (OCR on the actual bitmap). When you are done controlling the computer, call `computer_control_state` with action `release` so the user gets control back immediately.',
