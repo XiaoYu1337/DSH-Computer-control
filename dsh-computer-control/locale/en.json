@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Computer Control",
+    "description": "When the Agent takes over the computer, a slowly breathing misty-green glow lights the four screen edges and a top banner reads 'Agent正在操控此电脑'. Clicking the mouse takes control back and shows '用户正在操控电脑-点击继续'; clicking the blue '点击继续' hands control back. Gives the Agent screenshot-based screen recognition, mouse movement/clicks/drags/scroll, typing and key chords."
+  }
+}

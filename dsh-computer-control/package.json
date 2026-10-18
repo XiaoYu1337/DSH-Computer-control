@@ -1,0 +1,52 @@
+{
+  "name": "dsh-computer-control",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agent 电脑操控：屏幕四边缓慢闪烁的雾状绿光与顶部接管提示（Agent正在操控此电脑），用户点击鼠标即接管并显示「用户正在操控电脑-点击继续」；为 Agent 提供屏幕截取识别、鼠标、键盘工具。",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "scripts",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "computer-use",
+    "computer-control",
+    "mouse",
+    "keyboard",
+    "screenshot",
+    "overlay"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-renderer"
+      ]
+    }
+  },
+  "license": "MIT"
+}
