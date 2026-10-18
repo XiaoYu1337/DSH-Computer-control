@@ -48,5 +48,11 @@
       ]
     }
   },
+  "author": "XiaoYu1337",
+  "copyright": "© 2026 XiaoYu1337 · 专属标记 XY1337-DSH-CC-2026",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XiaoYu1337/DSH-Computer-control.git"
+  },
   "license": "MIT"
 }

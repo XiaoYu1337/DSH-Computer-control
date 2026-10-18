@@ -1,5 +1,7 @@
 # dsh-computer-control · Agent 电脑操控
 
+> **作者 / Author**：XiaoYu1337 · **版权**：© 2026 XiaoYu1337 · **专属标记**：`XY1337-DSH-CC-2026`
+
 给 DeepSeek Harness 的「Agent 接管电脑」插件：Agent 可以**看屏幕**（截屏识别）、**移动鼠标 / 点击 / 拖拽 / 滚动**、**打字 / 组合键**；接管期间用户始终知道现在是 Agent 在控制：
 
 - **屏幕四个边缘亮起细边框式、缓慢呼吸的淡绿光**（约 2px 细线 + 约 24px 内柔光；屏幕中央完全透明、不染色），顶部出现胶囊提示 **「Agent正在操控此电脑」**；
@@ -137,3 +139,14 @@ plugin_manager action=install_bundle target=<项目目录>\dsh-computer-control
 - 原生浮层链路：`computer_screen_info` → 全屏绿光 + 顶部「Agent正在操控此电脑」；模拟真实用户点击 → `paused`（绿光消失、顶部「用户正在操控电脑-点击继续」）；点击蓝字 → `resume` → 绿光恢复（`active`，overlay: native）；`release`/`turn/end` → `idle`。
 - 输入链路：通过 `computer_screenshot` 截屏定位 → `computer_mouse click` 聚焦窗口 → `computer_keyboard type` 输入 `Hello 世界 你好，这是 DSH 电脑操控插件的输入测试 123。` → 再截屏确认（Notepad 状态栏 36 字符）。
 - durable `turn/end` 自动收尾：子 Agent 调用一次 `computer_screen_info` 后本轮结束，约 1.8s 后浮层自动消失。
+
+---
+
+## 声明与专属标记
+
+- 本项目（代码 / 脚本 / 文档 / 浮层与界面设计 / 图标）由 **XiaoYu1337** 独立创作，著作权归作者所有。
+- 复制、修改、再分发时，必须完整保留作者署名、版权声明与专属标记 `XY1337-DSH-CC-2026`，并显著注明原仓库地址。
+- 不得移除、篡改或隐藏署名与标记，不得冒充原创或官方版本发布；如需商业授权请联系作者。
+- 完整条款见仓库根目录 [NOTICE.md](../NOTICE.md)。
+
+> © 2026 XiaoYu1337 · 专属标记 `XY1337-DSH-CC-2026`

@@ -6,6 +6,9 @@
  *   - computer_mouse / computer_keyboard：移动、点击、拖拽、滚动、打字、组合键
  *   - computer_control_state：查看接管状态 / 主动交还控制权
  *
+ * © 2026 XiaoYu1337 · 版权所有
+ * 专属标记：XY1337-DSH-CC-2026（详见仓库根目录 NOTICE.md）
+ *
  * 接管状态机（idle → active → paused）：
  *   - 任一操控工具被调用 → active：屏幕四边出现细边框式呼吸绿光 + 顶部「Agent正在操控此电脑」；
  *   - 物理鼠标点击（全局低级键状态轮询，非本插件的合成点击）→ paused：Agent 退出控制，
