@@ -3,7 +3,7 @@
 ![author](https://img.shields.io/badge/author-XiaoYu1337-6d28d9)
 ![version](https://img.shields.io/badge/version-1.0.0-22c55e)
 ![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0ea5e9)
-![license](https://img.shields.io/badge/license-Source--Available-red)
+![license](https://img.shields.io/badge/license-AGPL--3.0-blue)
 ![mark](https://img.shields.io/badge/mark-XY1337--DSH--CC--2026-f59e0b)
 
 > **作者 / Author**：XiaoYu1337 · **版权**：© 2026 XiaoYu1337 · **专属标记**：`XY1337-DSH-CC-2026`
@@ -151,8 +151,9 @@ plugin_manager action=install_bundle target=<项目目录>\dsh-computer-control
 ## 声明与专属标记
 
 - 本项目（代码 / 脚本 / 文档 / 浮层与界面设计 / 图标）由 **XiaoYu1337** 独立创作，著作权归作者所有。
-- 复制、修改、再分发时，必须完整保留作者署名、版权声明与专属标记 `XY1337-DSH-CC-2026`，并显著注明原仓库地址。
-- **禁止商用、禁止倒卖**；不得移除、篡改或隐藏署名与标记，不得冒充原创或官方版本发布。
-- 完整条款见仓库根目录 [LICENSE](../LICENSE) 与 [NOTICE.md](../NOTICE.md)；商业授权请联系作者。
+- 本项目以 **AGPL-3.0** 授权（见仓库根目录 [LICENSE](../LICENSE)）：允许使用、修改与商业使用，但分发修改版或作为网络服务提供时，**必须以 AGPL-3.0 公开完整对应源代码**。
+- 必须完整保留作者署名、版权声明与专属标记 `XY1337-DSH-CC-2026`，并注明原仓库地址。
+- 不得移除、篡改或隐藏署名与标记，不得冒充原创或官方版本发布；闭源商用请联系作者获取授权例外。
+- 完整说明见 [NOTICE.md](../NOTICE.md)。
 
-> © 2026 XiaoYu1337 · 专属标记 `XY1337-DSH-CC-2026`
+> © 2026 XiaoYu1337 · 专属标记 `XY1337-DSH-CC-2026` · AGPL-3.0
