@@ -138,11 +138,12 @@ export function createExtraTools(deps) {
     {
       name: 'computer_window',
       description:
-        'List, focus, or wait for top-level windows. action=list returns visible windows (hwnd/title/process/rect/foreground); action=focus activates a window by windowId/title regex/process; action=wait polls until a matching window exists (timeoutMs). Use this instead of guessing taskbar coordinates.',
+        'List, focus/restore, or wait for top-level windows. action=list includes minimized windows (hwnd/title/process/rect/foreground/minimized); set includeHidden=true to also enumerate tray-hidden windows. action=focus activates a window, restoring it first if minimized; action=restore is an explicit alias that also searches hidden windows; action=wait polls until a matching window exists (timeoutMs). Use this instead of guessing taskbar coordinates.',
       parameters: {
         type: 'object',
         properties: {
-          action: { type: 'string', enum: ['list', 'focus', 'wait'] },
+          action: { type: 'string', enum: ['list', 'focus', 'restore', 'wait'] },
+          includeHidden: { type: 'boolean', description: 'Include tray-hidden windows in list/focus matching.' },
           title: { type: 'string', description: 'Window title regular expression.' },
           process: { type: 'string', description: 'Process executable name (e.g. msedge).' },
           windowId: { type: 'integer', minimum: 1, description: 'HWND from action=list.' },
@@ -153,7 +154,7 @@ export function createExtraTools(deps) {
       },
       output: textOutput((_args, value) => {
         if (Array.isArray(value.windows)) {
-          const lines = value.windows.slice(0, 12).map((w) => `hwnd ${w.hwnd} "${w.title}" (${w.process}${w.foreground ? ', foreground' : ''})`);
+          const lines = value.windows.slice(0, 12).map((w) => `hwnd ${w.hwnd} "${w.title}" (${w.process}${w.foreground ? ', foreground' : ''}${w.minimized ? ', minimized' : ''}${w.visible === false ? ', hidden' : ''})`);
           return `Windows (${String(value.windows.length)}): ${lines.length > 0 ? lines.join('; ') : 'none'}.`;
         }
         if (value.window !== undefined) {

@@ -37,7 +37,8 @@ param(
     [string]$Title = '',
     [string]$Process = '',
     [long]$WindowId = 0,
-    [int]$TimeoutMs = 15000
+    [int]$TimeoutMs = 15000,
+    [switch]$IncludeHidden
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,6 +46,7 @@ $ProgressPreference = 'SilentlyContinue'
 $WarningPreference = 'SilentlyContinue'
 
 $script:Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$script:IncludeHidden = [bool]$IncludeHidden
 $script:Stdout = New-Object System.IO.StreamWriter([System.Console]::OpenStandardOutput(), $script:Utf8NoBom)
 $script:Stdout.AutoFlush = $true
 $script:Stderr = New-Object System.IO.StreamWriter([System.Console]::OpenStandardError(), $script:Utf8NoBom)
@@ -228,8 +230,13 @@ $actionName = ''
 if (-not [string]::IsNullOrWhiteSpace($Action)) {
     $actionName = $Action.Trim().ToLowerInvariant()
 }
-if (@('list', 'focus', 'wait') -notcontains $actionName) {
-    Fail 'invalid_args' ('-Action must be list, focus or wait (got: ' + $Action + ').')
+if (@('list', 'focus', 'restore', 'wait') -notcontains $actionName) {
+    Fail 'invalid_args' ('-Action must be list, focus, restore or wait (got: ' + $Action + ').')
+}
+if ($actionName -eq 'restore') {
+    # Tray-hidden windows are not visible, so restore must search hidden windows.
+    $script:IncludeHidden = $true
+    $actionName = 'focus'
 }
 
 $script:TitleRegex = $null
@@ -358,7 +365,7 @@ function Get-TopLevelWindows {
             param([IntPtr]$hWnd, [IntPtr]$lParam)
 
             try {
-                if (-not [DshWindowToolsNative]::IsWindowVisible($hWnd)) { return $true }
+                if (-not $script:IncludeHidden -and -not [DshWindowToolsNative]::IsWindowVisible($hWnd)) { return $true }
 
                 $textLength = [DshWindowToolsNative]::GetWindowTextLengthW($hWnd)
                 if ($textLength -le 0) { return $true }
@@ -503,12 +510,18 @@ try {
             }
 
             $targetHandle = [IntPtr]$target.hwnd
-            if ([DshWindowToolsNative]::IsIconic($targetHandle)) {
+            if ([DshWindowToolsNative]::IsIconic($targetHandle) -or -not [DshWindowToolsNative]::IsWindowVisible($targetHandle)) {
+                # SW_RESTORE both unminimizes and reveals tray-hidden top-level windows;
+                # SW_SHOW alone does not make a hidden window visible reliably.
                 [void][DshWindowToolsNative]::ShowWindow($targetHandle, [DshWindowToolsNative]::SW_RESTORE)
-                Start-Sleep -Milliseconds 150
-            } elseif (-not [DshWindowToolsNative]::IsWindowVisible($targetHandle)) {
-                [void][DshWindowToolsNative]::ShowWindow($targetHandle, [DshWindowToolsNative]::SW_SHOW)
-                Start-Sleep -Milliseconds 100
+                Start-Sleep -Milliseconds 160
+                if (-not [DshWindowToolsNative]::IsWindowVisible($targetHandle)) {
+                    [void][DshWindowToolsNative]::ShowWindow($targetHandle, [DshWindowToolsNative]::SW_SHOW)
+                    Start-Sleep -Milliseconds 100
+                }
+                if (-not [DshWindowToolsNative]::IsWindowVisible($targetHandle)) {
+                    Fail 'restore_failed' 'Window could not be made visible (it may have re-hidden itself to the tray).'
+                }
             }
 
             $activated = Activate-Window $targetHandle

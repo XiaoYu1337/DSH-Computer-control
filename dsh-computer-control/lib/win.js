@@ -95,20 +95,21 @@ function buildWindowArgs(params) {
   if (typeof params.process === 'string' && params.process.length > 0) args.push('-Process', params.process);
   if (Number.isInteger(params.windowId) && params.windowId > 0) args.push('-WindowId', String(params.windowId));
   if (Number.isFinite(params.timeoutMs) && params.timeoutMs > 0) args.push('-TimeoutMs', String(Math.round(params.timeoutMs)));
+  if (params.includeHidden === true) args.push('-IncludeHidden');
   return args;
 }
 
 /**
- * @param {{action: 'list'|'focus'|'wait', title?: string, process?: string, windowId?: number, timeoutMs?: number}} params
+ * @param {{action: 'list'|'focus'|'restore'|'wait', title?: string, process?: string, windowId?: number, timeoutMs?: number, includeHidden?: boolean}} params
  * @param {{signal?: AbortSignal, timeoutMs?: number}} opts
  */
 export async function windowTool(params, opts = {}) {
   const action = params?.action;
-  if (action !== 'list' && action !== 'focus' && action !== 'wait') {
+  if (action !== 'list' && action !== 'focus' && action !== 'restore' && action !== 'wait') {
     throw new Error(`computer-control invalid-args: unknown window action ${JSON.stringify(String(action))}`);
   }
-  if (action === 'focus' && typeof params.windowId !== 'number' && !params.title && !params.process) {
-    throw new Error('computer-control invalid-args: window focus needs windowId, title or process');
+  if ((action === 'focus' || action === 'restore') && typeof params.windowId !== 'number' && !params.title && !params.process) {
+    throw new Error(`computer-control invalid-args: window ${action} needs windowId, title or process`);
   }
   const timeout = action === 'wait' ? Math.min(60_000, Math.max(500, params.timeoutMs ?? 15_000)) : opts.timeoutMs ?? 20_000;
   const result = await runPowerShellScript(WINDOW_TOOL, buildWindowArgs({ ...params, action }), {

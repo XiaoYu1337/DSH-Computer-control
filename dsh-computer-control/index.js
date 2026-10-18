@@ -1366,38 +1366,103 @@ export function apply(ctx) {
         } catch {
           throw new Error('computer-control invalid-args: title is not a valid regex');
         }
-        const window = windows.find((item) => regex.test(String(item.title ?? '')));
+        let window = windows.find((item) => regex.test(String(item.title ?? '')));
+        if (window === undefined) {
+          // Tray-hidden windows are not visible; retry with hidden enumeration.
+          // focus(hwnd) still works for a hidden top-level window.
+          try {
+            const hiddenList = await windowTool({ action: 'list', includeHidden: true }, { signal: exec?.signal });
+            const hiddenWindows = Array.isArray(hiddenList.windows) ? hiddenList.windows : [];
+            window = hiddenWindows.find((item) => regex.test(String(item.title ?? '')));
+          } catch {
+            window = undefined;
+          }
+        }
         if (window === undefined) throw new Error(`computer-control window_not_found: no window matched ${args.title}`);
         const area = args.area === 'window' ? 'window' : 'client';
-        const full = {
+        let full = {
           x: Math.round(Number(window.x ?? 0)),
           y: Math.round(Number(window.y ?? 0)),
           w: Math.max(1, Math.round(Number(window.w ?? 0))),
           h: Math.max(1, Math.round(Number(window.h ?? 0))),
         };
-        const client = {
+        let client = {
           x: Math.round(Number(window.clientX ?? full.x)),
           y: Math.round(Number(window.clientY ?? full.y)),
           w: Math.max(1, Math.round(Number(window.clientW ?? full.w))),
           h: Math.max(1, Math.round(Number(window.clientH ?? full.h))),
         };
-        const captureRect = area === 'client' ? client : full;
-        const x = captureRect.x;
-        const y = captureRect.y;
-        const w = captureRect.w;
-        const h = captureRect.h;
+        let captureRect = area === 'client' ? client : full;
+        let x = captureRect.x;
+        let y = captureRect.y;
+        let w = captureRect.w;
+        let h = captureRect.h;
         // A screen crop only returns the target window when that window is
         // actually visible. Focus it first and verify; otherwise we would
         // silently capture DSH (or another occluding window) while keeping the
         // target's origin in the sidecar.
         await windowTool({ action: 'focus', windowId: Number(window.hwnd) }, { signal: exec?.signal });
         await new Promise((resolve) => setTimeout(resolve, 120));
-        const afterFocus = await windowTool({ action: 'list' }, { signal: exec?.signal });
+        const afterFocus = await windowTool({ action: 'list', includeHidden: true }, { signal: exec?.signal });
         const focused = Array.isArray(afterFocus.windows)
           ? afterFocus.windows.find((item) => Number(item.hwnd) === Number(window.hwnd))
           : undefined;
-        if (focused === undefined || focused.foreground !== true) {
-          throw new Error(`computer-control window_not_foreground: ${String(window.title ?? '')} could not be raised for capture`);
+        if (focused === undefined || focused.foreground !== true || focused.visible === false) {
+          throw new Error(`computer-control window_not_foreground: ${String(window.title ?? '')} could not be raised and made visible for capture`);
+        }
+        // Restoring a minimized window changes GetWindowRect from the -32000
+        // minimized sentinel to the real position. Recompute the capture rect
+        // after focus instead of using the stale pre-restore coordinates.
+        full = {
+          x: Math.round(Number(focused.x ?? full.x)),
+          y: Math.round(Number(focused.y ?? full.y)),
+          w: Math.max(1, Math.round(Number(focused.w ?? full.w))),
+          h: Math.max(1, Math.round(Number(focused.h ?? full.h))),
+        };
+        client = {
+          x: Math.round(Number(focused.clientX ?? full.x)),
+          y: Math.round(Number(focused.clientY ?? full.y)),
+          w: Math.max(1, Math.round(Number(focused.clientW ?? full.w))),
+          h: Math.max(1, Math.round(Number(focused.clientH ?? full.h))),
+        };
+        captureRect = area === 'client' ? client : full;
+        x = captureRect.x;
+        y = captureRect.y;
+        w = captureRect.w;
+        h = captureRect.h;
+        // A maximized window can report a DWM frame a few pixels outside the
+        // monitor (-9..1938). Clamp to the virtual screen and record the clamped
+        // rect so sidecar clicks still map to the pixels actually captured.
+        try {
+          const screen = await controller.runAction('screenInfo', {}, { agent: exec?.agent, signal: exec?.signal, timeoutMs: 15_000 });
+          const monitors = Array.isArray(screen.monitors) ? screen.monitors : [];
+          if (monitors.length > 0) {
+            let left = Infinity;
+            let top = Infinity;
+            let right = -Infinity;
+            let bottom = -Infinity;
+            for (const monitor of monitors) {
+              left = Math.min(left, Number(monitor.x ?? 0));
+              top = Math.min(top, Number(monitor.y ?? 0));
+              right = Math.max(right, Number(monitor.x ?? 0) + Number(monitor.width ?? 0));
+              bottom = Math.max(bottom, Number(monitor.y ?? 0) + Number(monitor.height ?? 0));
+            }
+            const clampedX = Math.max(left, x);
+            const clampedY = Math.max(top, y);
+            const clampedRight = Math.min(right, x + w);
+            const clampedBottom = Math.min(bottom, y + h);
+            if (clampedRight - clampedX < 1 || clampedBottom - clampedY < 1) {
+              throw new Error('computer-control window_outside_screen: window is entirely outside the virtual screen');
+            }
+            captureRect = { x: clampedX, y: clampedY, w: clampedRight - clampedX, h: clampedBottom - clampedY };
+            x = captureRect.x;
+            y = captureRect.y;
+            w = captureRect.w;
+            h = captureRect.h;
+          }
+        } catch (error) {
+          if (String(error?.message ?? '').includes('window_outside_screen')) throw error;
+          // If screenInfo is unavailable, keep the original rect rather than guessing.
         }
         await mkdir(SCREENSHOT_DIR, { recursive: true });
         const stamp = new Date().toISOString().replace(/[:.]/gu, '-');
